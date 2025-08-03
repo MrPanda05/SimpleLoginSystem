@@ -1,0 +1,56 @@
+﻿@SimpleLoginSystem_HostAddress = https://localhost:7208
+
+POST {{SimpleLoginSystem_HostAddress}}/users/register
+Content-Type: application/json
+
+{
+  "username" : "newUser2",
+  "email" : "user2@mail.com",
+  "password" : "securePassword123"
+}
+
+###
+
+@id=1
+GET {{SimpleLoginSystem_HostAddress}}/users/{{id}}
+
+###
+
+POST {{SimpleLoginSystem_HostAddress}}/users/login
+Content-Type: application/json
+
+{
+  "username" : "newUser",
+  "email" : "user2@mail.com",
+  "password" : "newSecurePassword"
+}
+
+###
+
+POST {{SimpleLoginSystem_HostAddress}}/users/logout
+Content-Type: application/json
+
+{
+  "username" : "newUser",
+  "email" : "user2@mail.com",
+  "password" : "newSecurePassword",
+  "token" : "1ddbf401-ac6e-4ba6-b7a7-cff5241a2308"
+}
+
+###
+
+GET {{SimpleLoginSystem_HostAddress}}/users/all?id={{id}}
+
+###
+
+PUT {{SimpleLoginSystem_HostAddress}}/users/edit
+Content-Type: application/json
+
+{
+  "email" : "user2@mail.com",
+  "oldpassword" : "securePassword123",
+  "newpassword" : "newSecurePassword",
+  "token": "1ddbf401-ac6e-4ba6-b7a7-cff5241a2308"
+}
+
+###
