@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SimpleLoginSystem.Objects;
 using SimpleLoginSystem.Objects.Requests;
 using SimpleLoginSystem.Objects.Responses;
+using SimpleLoginSystem.Services;
 
 namespace SimpleLoginSystem.Endpoints
 {
@@ -11,11 +12,11 @@ namespace SimpleLoginSystem.Endpoints
         public static void MapUserEndpoints(RouteGroupBuilder route)
         {
             route.MapGet("/{id}", GetUser);
-            route.MapGet("/all", GetAllUser);
+            route.MapGet("/all", GetAllUser).RequireAuthorization("admin");
             route.MapPost("/register", Register);
             route.MapPost("/login", Login);
-            route.MapPost("/logout", Logout);
-            route.MapPut("/edit", EditPassword);
+            route.MapPost("/logout", Logout).RequireAuthorization();
+            route.MapPut("/edit", EditPassword).RequireAuthorization();
 
 
         }
@@ -67,7 +68,7 @@ namespace SimpleLoginSystem.Endpoints
             return TypedResults.Ok(userDto);
         }
 
-        static async Task<Results<Ok<List<UserDTO>>, NotFound>> GetAllUser(int id, EcommerceDB db)
+        static async Task<Results<Ok<List<UserDTO>>, NotFound>> GetAllUser(EcommerceDB db)
         {
             var users = await db.Users.Select(u => new UserDTO
             {
@@ -84,7 +85,7 @@ namespace SimpleLoginSystem.Endpoints
             return TypedResults.Ok(users);
         }
 
-        static async Task<Results<Ok<LoginResponse>, NotFound, BadRequest<string>>> Login(RegisterRequest req, EcommerceDB db)
+        static async Task<Results<Ok<LoginResponse>, NotFound, BadRequest<string>>> Login(RegisterRequest req, EcommerceDB db, TokenService service)
         {
             if (string.IsNullOrEmpty(req.Username) || string.IsNullOrEmpty(req.Email) || string.IsNullOrEmpty(req.Password))
             {
@@ -104,8 +105,7 @@ namespace SimpleLoginSystem.Endpoints
             }
 
             user.IsLoggedIn = true;
-            user.Token = Guid.NewGuid().ToString(); // Generate a token for the user
-            // Example: generate a simple token (replace with secure token generation in production)
+            user.Token = service.GenerateToken(user);
             await db.SaveChangesAsync();
             LoginResponse response = new LoginResponse
             {
@@ -115,7 +115,7 @@ namespace SimpleLoginSystem.Endpoints
                     Email = user.Email,
                     IsLoggedIn = user.IsLoggedIn
                 },
-                Token = user.Token // Return the token in the response
+                Token = user.Token
             };
             return TypedResults.Ok(response);
         }

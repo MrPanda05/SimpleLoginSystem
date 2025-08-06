@@ -1,4 +1,6 @@
-Small e-commerce api system, using aspnet minimal api
+Despite the name, this is  e-commerce api.
+
+sing aspnet minimal api
 
 this is a very simplified project.
 
