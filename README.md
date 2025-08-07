@@ -16,7 +16,7 @@ Features.
 
 login, register, logout, change password!
 
-Buy, sell, get product.
+get product.
 
 add products, update products, delete products. (Auth, only admins)
 

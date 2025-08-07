@@ -44,6 +44,8 @@ await app.SeedAdminUserAsync();
 
 RouteGroupBuilder userItems = app.MapGroup("/users");
 UserUserEndPoints.MapUserEndpoints(userItems);
+RouteGroupBuilder productItems = app.MapGroup("/products");
+ProductsEndPoints.MapProductEndpoints(productItems);
 
 
 app.Run();

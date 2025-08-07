@@ -4,6 +4,7 @@ using SimpleLoginSystem.Objects;
 using SimpleLoginSystem.Objects.Requests;
 using SimpleLoginSystem.Objects.Responses;
 using SimpleLoginSystem.Services;
+using BCrypt.Net;
 
 namespace SimpleLoginSystem.Endpoints
 {
@@ -19,6 +20,21 @@ namespace SimpleLoginSystem.Endpoints
             route.MapPut("/edit", EditPassword).RequireAuthorization();
 
 
+        }
+
+        public static string HashGeneration(string password)
+        {
+            int workfactor = 14;
+
+            string salt = BCrypt.Net.BCrypt.GenerateSalt(workfactor);
+            string hash = BCrypt.Net.BCrypt.HashPassword(password, salt);
+
+            return hash;
+        }
+
+        public static bool PasswordCompare(string hash, string password)
+        {
+            return BCrypt.Net.BCrypt.Verify(password, hash);
         }
 
         static async Task<Results<Ok<UserDTO>, BadRequest<string>>> Register(RegisterRequest req, EcommerceDB db)
@@ -38,7 +54,7 @@ namespace SimpleLoginSystem.Endpoints
             {
                 Username = req.Username,
                 Email = req.Email,
-                Password = req.Password//this would be encrypted in a real application
+                Password = HashGeneration(req.Password),
             };
             db.Users.Add(newUser);
             await db.SaveChangesAsync();
@@ -99,7 +115,8 @@ namespace SimpleLoginSystem.Endpoints
                 return TypedResults.BadRequest("Invalid email or password");
             }
 
-            if (user.Password != req.Password)
+
+            if (!PasswordCompare(user.Password, req.Password))
             {
                 return TypedResults.BadRequest("Invalid password");
             }
@@ -180,12 +197,12 @@ namespace SimpleLoginSystem.Endpoints
                 return TypedResults.BadRequest("Invalid token");
             }
 
-            if(user.Password != req.OldPassword)
+            if(!PasswordCompare(user.Password, req.OldPassword))
             {
                 return TypedResults.BadRequest("Old password is incorrect.");
             }
 
-            if(user.Password == req.NewPassword)
+            if(req.OldPassword == req.NewPassword)
             {
                 return TypedResults.BadRequest("New password cannot be the same as the old password.");
             }
